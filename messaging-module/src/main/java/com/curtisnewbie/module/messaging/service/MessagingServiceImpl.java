@@ -1,7 +1,5 @@
 package com.curtisnewbie.module.messaging.service;
 
-import com.curtisnewbie.common.util.JsonUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -30,7 +28,8 @@ public class MessagingServiceImpl implements MessagingService {
     @Override
     public void send(String msg, String exchange, String routingKey, MessageDeliveryMode deliveryMode) {
         Message message = MessageBuilder.withBody(msg.getBytes(StandardCharsets.UTF_8))
-                .setContentEncoding(MessageProperties.CONTENT_TYPE_TEXT_PLAIN)
+                .setContentEncoding(StandardCharsets.UTF_8.name())
+                .setContentType(MessageProperties.CONTENT_TYPE_TEXT_PLAIN)
                 .setDeliveryMode(deliveryMode)
                 .setTimestamp(new Date())
                 .build();
@@ -38,19 +37,17 @@ public class MessagingServiceImpl implements MessagingService {
     }
 
     @Override
-    public void sendJson(Object msg, String exchange, String routingKey) throws JsonProcessingException {
+    public void sendJson(Object msg, String exchange, String routingKey) {
         sendJson(msg, exchange, routingKey, MessageDeliveryMode.NON_PERSISTENT);
     }
 
     @Override
-    public void sendJson(Object msg, String exchange, String routingKey, MessageDeliveryMode deliveryMode) throws JsonProcessingException {
-        String json = JsonUtils.writeValueAsString(msg);
-        Message message = MessageBuilder.withBody(json.getBytes(StandardCharsets.UTF_8))
-                .setContentEncoding(MessageProperties.CONTENT_TYPE_JSON)
-                .setDeliveryMode(deliveryMode)
-                .setTimestamp(new Date())
-                .build();
-        rabbitTemplate.send(exchange, routingKey, message);
+    public void sendJson(Object msg, String exchange, String routingKey, MessageDeliveryMode deliveryMode) {
+        rabbitTemplate.convertAndSend(exchange, routingKey, msg, (message) -> {
+            message.getMessageProperties().setDeliveryMode(deliveryMode);
+            message.getMessageProperties().setTimestamp(new Date());
+            return message;
+        });
     }
 }
 

@@ -41,9 +41,8 @@ public interface MessagingService {
      * @param msg        message (will be serialised as JSON)
      * @param exchange   exchange
      * @param routingKey routingKey
-     * @throws JsonProcessingException when it's unable to convert object to json string
      */
-    void sendJson(Object msg, String exchange, String routingKey) throws JsonProcessingException;
+    void sendJson(Object msg, String exchange, String routingKey);
 
     /**
      * Send message to exchange
@@ -52,7 +51,6 @@ public interface MessagingService {
      * @param exchange     exchange
      * @param routingKey   routingKey
      * @param deliveryMode deliveryMode
-     * @throws JsonProcessingException when it's unable to convert object to json string
      */
-    void sendJson(Object msg, String exchange, String routingKey, MessageDeliveryMode deliveryMode) throws JsonProcessingException;
+    void sendJson(Object msg, String exchange, String routingKey, MessageDeliveryMode deliveryMode);
 }
