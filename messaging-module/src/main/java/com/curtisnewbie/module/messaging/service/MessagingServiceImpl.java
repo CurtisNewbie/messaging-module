@@ -1,5 +1,8 @@
 package com.curtisnewbie.module.messaging.service;
 
+import com.curtisnewbie.module.messaging.tracing.MessageTracingUtil;
+import com.curtisnewbie.module.messaging.tracing.MessageTracingConfig;
+import com.curtisnewbie.module.tracing.common.MdcUtil;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -23,6 +26,8 @@ public class MessagingServiceImpl implements MessagingService {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private MessageTracingConfig messageTracingConfig;
 
     @Override
     public void send(@NotNull @Valid MessagingParam param) {
@@ -37,20 +42,30 @@ public class MessagingServiceImpl implements MessagingService {
     @Override
     public void send(@NotNull Object msg, @NotEmpty String exchange, @NotEmpty String routingKey, @NotNull MessageDeliveryMode deliveryMode,
                      @Nullable CorrelationData correlationData) {
-        rabbitTemplate.convertAndSend(exchange, routingKey, msg, new GeneralPropertiesMessagePostProcessor(deliveryMode), correlationData);
+        rabbitTemplate.convertAndSend(exchange, routingKey, msg,
+                new GeneralPropertiesMessagePostProcessor(deliveryMode, messageTracingConfig.isEnabled()),
+                correlationData);
     }
 
     private static class GeneralPropertiesMessagePostProcessor implements MessagePostProcessor {
         private final MessageDeliveryMode deliveryMode;
+        private final boolean tracingEnabled;
 
-        public GeneralPropertiesMessagePostProcessor(MessageDeliveryMode deliveryMode) {
+        public GeneralPropertiesMessagePostProcessor(MessageDeliveryMode deliveryMode, boolean tracingEnabled) {
             this.deliveryMode = deliveryMode;
+            this.tracingEnabled = tracingEnabled;
         }
 
         @Override
         public Message postProcessMessage(Message message) throws AmqpException {
             message.getMessageProperties().setDeliveryMode(deliveryMode);
             message.getMessageProperties().setTimestamp(new Date());
+            if (tracingEnabled) {
+                // don't use it for header exchange
+                String traceId = MdcUtil.getTraceId();
+                if (traceId != null)
+                    MessageTracingUtil.setTraceId(message, traceId);
+            }
             return message;
         }
     }
