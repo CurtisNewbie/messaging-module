@@ -1,7 +1,7 @@
 package com.curtisnewbie.module.messaging.config;
 
-import com.curtisnewbie.module.messaging.handler.ConfirmCallbackDelegate;
-import com.curtisnewbie.module.messaging.handler.ReturnsCallbackDelegate;
+import com.curtisnewbie.module.messaging.callback.internal.ConfirmCallbackDelegate;
+import com.curtisnewbie.module.messaging.callback.internal.ReturnsCallbackDelegate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;

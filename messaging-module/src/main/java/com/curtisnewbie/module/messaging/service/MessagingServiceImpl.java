@@ -1,6 +1,5 @@
 package com.curtisnewbie.module.messaging.service;
 
-import com.curtisnewbie.module.messaging.config.RoutingInfo;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -15,7 +14,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * @author yongjie.zhuang
@@ -28,20 +26,7 @@ public class MessagingServiceImpl implements MessagingService {
 
     @Override
     public void send(@NotNull @Valid MessagingParam param) {
-        RoutingInfo r = param.getRoutingInfo();
-        String exchange, routingKey;
-        if (r != null) {
-            exchange = r.getExchange();
-            routingKey = r.getRoutingKey();
-        } else {
-            exchange = param.getExchange();
-            routingKey = param.getRoutingKey();
-        }
-
-        Objects.requireNonNull(routingKey);
-        Objects.requireNonNull(exchange);
-
-        send(param.getPayload(), exchange, routingKey, param.getDeliveryMode(), param.getCorrelationData());
+        send(param.getPayload(), param.getExchange(), param.getRoutingKey(), param.getDeliveryMode(), param.getCorrelationData());
     }
 
     @Override
@@ -53,24 +38,6 @@ public class MessagingServiceImpl implements MessagingService {
     public void send(@NotNull Object msg, @NotEmpty String exchange, @NotEmpty String routingKey, @NotNull MessageDeliveryMode deliveryMode,
                      @Nullable CorrelationData correlationData) {
         rabbitTemplate.convertAndSend(exchange, routingKey, msg, new GeneralPropertiesMessagePostProcessor(deliveryMode), correlationData);
-    }
-
-    @Override
-    public void send(@NotNull Object msg, @NotNull RoutingInfo routingInfo) {
-        String exchange = routingInfo.getExchange();
-        Objects.requireNonNull(exchange);
-        String routingKey = routingInfo.getRoutingKey();
-        Objects.requireNonNull(routingKey);
-        send(msg, exchange, routingKey, MessageDeliveryMode.PERSISTENT, null);
-    }
-
-    @Override
-    public void send(@NotNull Object msg, @NotNull RoutingInfo routingInfo, @NotNull MessageDeliveryMode deliveryMode) {
-        String exchange = routingInfo.getExchange();
-        Objects.requireNonNull(exchange);
-        String routingKey = routingInfo.getRoutingKey();
-        Objects.requireNonNull(routingKey);
-        send(msg, exchange, routingKey, deliveryMode, null);
     }
 
     private static class GeneralPropertiesMessagePostProcessor implements MessagePostProcessor {

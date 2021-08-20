@@ -1,5 +1,6 @@
-package com.curtisnewbie.module.messaging.handler;
+package com.curtisnewbie.module.messaging.callback;
 
+import com.curtisnewbie.module.messaging.callback.internal.ConfirmCallbackDelegate;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.lang.Nullable;
 

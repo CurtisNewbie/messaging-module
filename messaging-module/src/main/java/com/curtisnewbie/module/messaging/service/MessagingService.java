@@ -1,6 +1,5 @@
 package com.curtisnewbie.module.messaging.service;
 
-import com.curtisnewbie.module.messaging.config.RoutingInfo;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.lang.Nullable;
@@ -55,29 +54,5 @@ public interface MessagingService {
      */
     void send(@NotNull Object msg, @NotEmpty String exchange, @NotEmpty String routingKey, @NotNull MessageDeliveryMode deliveryMode,
               @Nullable CorrelationData correlationData);
-
-    /**
-     * <p>
-     * Send message to exchange
-     * </p>
-     * <p>
-     * DeliveryMode is by default {@link MessageDeliveryMode#PERSISTENT}
-     * </p>
-     *
-     * @param msg         message (will be serialised as JSON)
-     * @param routingInfo routing information
-     */
-    void send(@NotNull Object msg, @NotNull RoutingInfo routingInfo);
-
-    /**
-     * <p>
-     * Send message to exchange
-     * </p>
-     *
-     * @param msg          message (will be serialised as JSON)
-     * @param routingInfo  routing information
-     * @param deliveryMode deliveryMode
-     */
-    void send(@NotNull Object msg, @NotNull RoutingInfo routingInfo, @NotNull MessageDeliveryMode deliveryMode);
 
 }

@@ -1,12 +1,13 @@
 package com.curtisnewbie.module.messaging.service;
 
-import com.curtisnewbie.module.messaging.config.RoutingInfo;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.lang.Nullable;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -16,7 +17,7 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 @AllArgsConstructor
-@lombok.Builder
+@Builder
 public class MessagingParam {
 
     /**
@@ -26,16 +27,12 @@ public class MessagingParam {
     private final Object payload;
 
     /** Exchange name */
+    @NotEmpty
     private final String exchange;
 
     /** Routing key */
+    @NotEmpty
     private final String routingKey;
-
-    /**
-     * Same as {@link #exchange} and {@link #routingKey}, can't be null if {@link #exchange} and {@link #routingKey} are
-     * both null
-     */
-    private final RoutingInfo routingInfo;
 
     @Nullable
     private final MessageDeliveryMode deliveryMode;

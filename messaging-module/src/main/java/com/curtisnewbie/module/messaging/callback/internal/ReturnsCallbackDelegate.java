@@ -1,5 +1,6 @@
-package com.curtisnewbie.module.messaging.handler;
+package com.curtisnewbie.module.messaging.callback.internal;
 
+import com.curtisnewbie.module.messaging.callback.MessageReturnsCallback;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -19,7 +20,7 @@ import java.util.List;
 @Component
 public class ReturnsCallbackDelegate implements RabbitTemplate.ReturnsCallback {
 
-    @Autowired
+    @Autowired(required = false)
     private List<MessageReturnsCallback> returnsCallbackList;
 
     @Override
