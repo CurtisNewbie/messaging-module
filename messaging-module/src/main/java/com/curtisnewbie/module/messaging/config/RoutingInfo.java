@@ -1,7 +1,7 @@
 package com.curtisnewbie.module.messaging.config;
 
 /**
- * Routing information
+ * Routing information that contains exchange name and routing key
  *
  * @author yongjie.zhuang
  */

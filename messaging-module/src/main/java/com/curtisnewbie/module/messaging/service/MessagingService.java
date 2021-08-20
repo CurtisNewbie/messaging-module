@@ -2,7 +2,11 @@ package com.curtisnewbie.module.messaging.service;
 
 import com.curtisnewbie.module.messaging.config.RoutingInfo;
 import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.lang.Nullable;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -11,13 +15,26 @@ import javax.validation.constraints.NotNull;
  *
  * @author yongjie.zhuang
  */
+@Validated
 public interface MessagingService {
 
     /**
+     * <p>
      * Send message to exchange
-     * <br>
-     * <br>
+     * </p>
+     * <p>
      * DeliveryMode is by default {@link MessageDeliveryMode#PERSISTENT}
+     * </p>
+     */
+    void send(@NotNull @Valid MessagingParam param);
+
+    /**
+     * <p>
+     * Send message to exchange
+     * </p>
+     * <p>
+     * DeliveryMode is by default {@link MessageDeliveryMode#PERSISTENT}
+     * </p>
      *
      * @param msg        message (will be serialised as JSON)
      * @param exchange   exchange
@@ -26,34 +43,39 @@ public interface MessagingService {
     void send(@NotNull Object msg, @NotEmpty String exchange, @NotEmpty String routingKey);
 
     /**
+     * <p>
      * Send message to exchange
+     * </p>
      *
-     * @param msg          message (will be serialised as JSON)
-     * @param exchange     exchange
-     * @param routingKey   routingKey
-     * @param deliveryMode deliveryMode
+     * @param msg             message (will be serialised as JSON)
+     * @param exchange        exchange
+     * @param routingKey      routingKey
+     * @param deliveryMode    deliveryMode
+     * @param correlationData correlation data (nullable)
      */
-    void send(@NotNull Object msg, @NotEmpty String exchange, @NotEmpty String routingKey, @NotNull MessageDeliveryMode deliveryMode);
+    void send(@NotNull Object msg, @NotEmpty String exchange, @NotEmpty String routingKey, @NotNull MessageDeliveryMode deliveryMode,
+              @Nullable CorrelationData correlationData);
 
     /**
+     * <p>
      * Send message to exchange
-     * <br>
-     * <br>
+     * </p>
+     * <p>
      * DeliveryMode is by default {@link MessageDeliveryMode#PERSISTENT}
+     * </p>
      *
      * @param msg         message (will be serialised as JSON)
-     * @param routingInfo
+     * @param routingInfo routing information
      */
     void send(@NotNull Object msg, @NotNull RoutingInfo routingInfo);
 
     /**
+     * <p>
      * Send message to exchange
-     * <br>
-     * <br>
-     * DeliveryMode is by default {@link MessageDeliveryMode#PERSISTENT}
+     * </p>
      *
      * @param msg          message (will be serialised as JSON)
-     * @param routingInfo
+     * @param routingInfo  routing information
      * @param deliveryMode deliveryMode
      */
     void send(@NotNull Object msg, @NotNull RoutingInfo routingInfo, @NotNull MessageDeliveryMode deliveryMode);

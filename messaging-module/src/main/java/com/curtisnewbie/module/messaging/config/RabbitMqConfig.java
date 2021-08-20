@@ -1,7 +1,7 @@
 package com.curtisnewbie.module.messaging.config;
 
-import com.curtisnewbie.module.messaging.handler.OnMessageConfirmedHandlerDelegate;
-import com.curtisnewbie.module.messaging.handler.OnMessageReturnedHandlerDelegate;
+import com.curtisnewbie.module.messaging.handler.ConfirmCallbackDelegate;
+import com.curtisnewbie.module.messaging.handler.ReturnsCallbackDelegate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -16,10 +16,10 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMqConfig {
 
     @Autowired
-    private OnMessageConfirmedHandlerDelegate onMessageConfirmedHandlerDelegate;
+    private ConfirmCallbackDelegate confirmCallbackDelegate;
 
     @Autowired
-    private OnMessageReturnedHandlerDelegate onMessageReturnedHandlerDelegate;
+    private ReturnsCallbackDelegate returnsCallbackDelegate;
 
     @Autowired
     private ConnectionFactory connectionFactory;
@@ -32,8 +32,8 @@ public class RabbitMqConfig {
         RabbitTemplate rabbitTemplate = new RabbitTemplate();
         rabbitTemplate.setConnectionFactory(connectionFactory);
         rabbitTemplate.setMandatory(true);
-        rabbitTemplate.setConfirmCallback(onMessageConfirmedHandlerDelegate);
-        rabbitTemplate.setReturnsCallback(onMessageReturnedHandlerDelegate);
+        rabbitTemplate.setConfirmCallback(confirmCallbackDelegate);
+        rabbitTemplate.setReturnsCallback(returnsCallbackDelegate);
         rabbitTemplate.setMessageConverter(jackson2JsonMessageConverter);
         return rabbitTemplate;
     }
