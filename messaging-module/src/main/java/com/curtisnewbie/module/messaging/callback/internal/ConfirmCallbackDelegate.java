@@ -26,6 +26,7 @@ public class ConfirmCallbackDelegate implements RabbitTemplate.ConfirmCallback {
     @Override
     public void confirm(CorrelationData correlationData, boolean ack, String cause) {
         log.debug("Message confirmed, correlation_data: '{}', ack: '{}', cause: '{}'", correlationData, ack, cause);
-        messageConfirmCallbackList.forEach(c -> c.confirm(correlationData, ack, cause));
+        if (messageConfirmCallbackList != null)
+            messageConfirmCallbackList.forEach(c -> c.confirm(correlationData, ack, cause));
     }
 }

@@ -26,6 +26,7 @@ public class ReturnsCallbackDelegate implements RabbitTemplate.ReturnsCallback {
     @Override
     public void returnedMessage(ReturnedMessage returnedMessage) {
         log.debug("Message returned: {}", returnedMessage);
-        returnsCallbackList.forEach(c -> c.returnedMessage(returnedMessage));
+        if (returnsCallbackList != null)
+            returnsCallbackList.forEach(c -> c.returnedMessage(returnedMessage));
     }
 }
