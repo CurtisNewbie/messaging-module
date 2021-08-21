@@ -60,7 +60,7 @@ public class NamespaceCorrelationData extends CorrelationData {
         String[] ca = cid.split(":");
         if (ca.length < 2) {
             log.error("{} correlation_id malformed, unable to parse it", NamespaceCorrelationData.class.getSimpleName());
-            return new NamespaceAndId(null, null);
+            return null;
         }
         String namespace = ca[0];
         String id = String.join(":", Arrays.copyOfRange(ca, 1, ca.length));
