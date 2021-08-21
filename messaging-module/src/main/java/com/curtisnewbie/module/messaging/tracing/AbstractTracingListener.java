@@ -20,6 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class AbstractTracingListener<T> extends MessageListenerAdapter {
 
+    @Autowired
+    private Jackson2JsonMessageConverter jackson2JsonMessageConverter;
+
     /**
      * On message received
      *
@@ -27,9 +30,6 @@ public abstract class AbstractTracingListener<T> extends MessageListenerAdapter 
      * @param message message
      */
     protected abstract void onMessage(T t, Message message);
-
-    @Autowired
-    private Jackson2JsonMessageConverter jackson2JsonMessageConverter;
 
     private void handleMessage(T t, Message message) {
         String traceId = MessageTracingUtil.getTraceId(message);
