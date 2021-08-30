@@ -7,14 +7,11 @@ import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessagePostProcessor;
-import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
@@ -31,25 +28,20 @@ public class MessagingServiceImpl implements MessagingService {
 
     @Override
     public void send(@NotNull @Valid MessagingParam param) {
-        send(param.getPayload(), param.getExchange(), param.getRoutingKey(), param.getDeliveryMode(), param.getCorrelationData());
-    }
+        MessagePostProcessor mpp = param.getMessagePostProcessor();
+        mpp = new GeneralPropertiesMessagePostProcessor(param.getDeliveryMode(), messageTracingConfig.isEnabled()).wrap(mpp);
 
-    @Override
-    public void send(@NotNull Object msg, @NotEmpty String exchange, @NotEmpty String routingKey) {
-        send(msg, exchange, routingKey, MessageDeliveryMode.PERSISTENT, null);
-    }
-
-    @Override
-    public void send(@NotNull Object msg, @NotEmpty String exchange, @NotEmpty String routingKey, @NotNull MessageDeliveryMode deliveryMode,
-                     @Nullable CorrelationData correlationData) {
-        rabbitTemplate.convertAndSend(exchange, routingKey, msg,
-                new GeneralPropertiesMessagePostProcessor(deliveryMode, messageTracingConfig.isEnabled()),
-                correlationData);
+        rabbitTemplate.convertAndSend(param.getExchange(),
+                param.getRoutingKey(),
+                param.getPayload(),
+                mpp,
+                param.getCorrelationData());
     }
 
     private static class GeneralPropertiesMessagePostProcessor implements MessagePostProcessor {
         private final MessageDeliveryMode deliveryMode;
         private final boolean tracingEnabled;
+        private MessagePostProcessor wrapped = null;
 
         public GeneralPropertiesMessagePostProcessor(MessageDeliveryMode deliveryMode, boolean tracingEnabled) {
             this.deliveryMode = deliveryMode;
@@ -66,7 +58,16 @@ public class MessagingServiceImpl implements MessagingService {
                 if (traceId != null)
                     MessageTracingUtil.setTraceId(message, traceId);
             }
-            return message;
+            if (wrapped != null)
+                return wrapped.postProcessMessage(message);
+            else return message;
+        }
+
+        public MessagePostProcessor wrap(MessagePostProcessor mpp) {
+            if (this.wrapped != null)
+                throw new IllegalStateException("Already wrapped a post processor");
+            this.wrapped = mpp;
+            return this;
         }
     }
 }

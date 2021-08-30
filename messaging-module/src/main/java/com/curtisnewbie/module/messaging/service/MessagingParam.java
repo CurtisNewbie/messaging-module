@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.lang.Nullable;
 
@@ -39,4 +40,7 @@ public class MessagingParam {
 
     @Nullable
     private final CorrelationData correlationData;
+
+    @Nullable
+    private final MessagePostProcessor messagePostProcessor;
 }

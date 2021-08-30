@@ -27,32 +27,4 @@ public interface MessagingService {
      */
     void send(@NotNull @Valid MessagingParam param);
 
-    /**
-     * <p>
-     * Send message to exchange
-     * </p>
-     * <p>
-     * DeliveryMode is by default {@link MessageDeliveryMode#PERSISTENT}
-     * </p>
-     *
-     * @param msg        message (will be serialised as JSON)
-     * @param exchange   exchange
-     * @param routingKey routingKey
-     */
-    void send(@NotNull Object msg, @NotEmpty String exchange, @NotEmpty String routingKey);
-
-    /**
-     * <p>
-     * Send message to exchange
-     * </p>
-     *
-     * @param msg             message (will be serialised as JSON)
-     * @param exchange        exchange
-     * @param routingKey      routingKey
-     * @param deliveryMode    deliveryMode
-     * @param correlationData correlation data (nullable)
-     */
-    void send(@NotNull Object msg, @NotEmpty String exchange, @NotEmpty String routingKey, @NotNull MessageDeliveryMode deliveryMode,
-              @Nullable CorrelationData correlationData);
-
 }
