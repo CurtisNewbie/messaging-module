@@ -1,0 +1,96 @@
+package com.curtisnewbie.module.messaging.listener;
+
+import com.curtisnewbie.common.util.JsonUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.rabbitmq.client.Channel;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
+
+import java.lang.reflect.Method;
+import java.util.Objects;
+
+/**
+ * <p>
+ * Abstract message Listener adapter that deserializes json string
+ * </p>
+ * <p>
+ * This is for those publisher that do not use jackson message converter to serialize object to json, the headers are
+ * not found in these messages, so the jackson message converter cannot deserialize them correctly. Content type of
+ * Message published to this kind of listener should be "text/*" rather than "application/json"
+ * </p>
+ * <p>
+ * It uses the method name 'handleMessageInternal', so when configuring such bean in xml or listener container, don't
+ * specify method name to use it. All you need to do is to implement {@link #handle(Object, Message)}}.
+ * </p>
+ * <p>
+ * Note that <b>do not overload {@link #handle(Object, Message)} method</b>.
+ * </p>
+ *
+ * @author yongjie.zhuang
+ */
+@Slf4j
+public abstract class AbstractJsonDeserializedListenerAdapter<T> extends MessageListenerAdapter {
+
+    private static final String INHERITED_METHOD_NAME = "handle";
+    private final Class<?> tClazz;
+
+    protected AbstractJsonDeserializedListenerAdapter() {
+        Method[] methods = this.getClass().getMethods();
+        Method handleMethod = null;
+        for (Method m : methods) {
+            if (m.getName().equals(INHERITED_METHOD_NAME)) {
+
+                if (m.getParameterCount() != 2 && Objects.equals(m.getParameterTypes()[1], org.springframework.messaging.Message.class))
+                    continue;
+
+                if (handleMethod != null) {
+                    throw new IllegalStateException(this.getClass().getSimpleName() + " doesn't allow overloading" +
+                            INHERITED_METHOD_NAME + "method");
+                }
+                handleMethod = m;
+                break;
+            }
+        }
+        try {
+            this.tClazz = Class.forName(handleMethod.getGenericParameterTypes()[0].getTypeName());
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Unable to resolve type of T");
+        }
+        log.info("T: {}", tClazz);
+    }
+
+    /**
+     * <p>
+     * On message received
+     * </p>
+     *
+     * @param t       message deserialized as object
+     * @param message message
+     */
+    public abstract void handle(T t, Message message);
+
+    /**
+     * Method invoked by the listener container, this is where json string deserialized as T object
+     */
+    private void handleMessageInternal(String json, Message message) {
+        T t = null;
+        try {
+            t = (T) JsonUtils.readValueAsObject(json, tClazz);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Unable to deserialize json", e);
+        }
+        handle(t, message);
+    }
+
+    @Override
+    protected String getListenerMethodName(Message originalMessage, Object extractedMessage) {
+        return "handleMessageInternal";
+    }
+
+    @Override
+    protected Object[] buildListenerArguments(Object extractedMessage, Channel channel, Message message) {
+        return new Object[]{extractedMessage, message};
+    }
+
+}
