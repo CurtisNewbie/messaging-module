@@ -26,6 +26,18 @@ import java.util.Objects;
  * <p>
  * Note that <b>do not overload {@link #handle(Object, Message)} method</b>.
  * </p>
+ * Examples:
+ * <pre>
+ * {@code
+ * public class JsonStrListener extends AbstractJsonDeserializedListenerAdapter<DemoBean> {
+ *
+ *      @Override
+ *      public void handle(DemoBean demoBean, Message message) {
+ *          // do something
+ *      }
+ * }
+ * }
+ * </pre>
  *
  * @author yongjie.zhuang
  */
