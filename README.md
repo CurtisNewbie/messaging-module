@@ -16,7 +16,7 @@ This project depends on the following modules that you must manually install (us
     - description: BOM file for dependency management
     - url: https://github.com/CurtisNewbie/curtisnewbie-bom
     - branch: main
-    - version: micro-0.0.1 (under `/microservice` folder)
+    - under `/microservice` folder
 
 - log-tracing-module
     - description: for log tracing between web endpoints and service layers
