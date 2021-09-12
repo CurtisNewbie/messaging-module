@@ -1,7 +1,6 @@
 package com.curtisnewbie.module.messaging;
 
 import com.curtisnewbie.common.util.JsonUtils;
-import com.curtisnewbie.module.messaging.config.RabbitTemplateConfigurer;
 import com.curtisnewbie.module.messaging.service.MessagingParam;
 import com.curtisnewbie.module.messaging.service.MessagingService;
 import com.curtisnewbie.module.messaging.listener.AbstractJsonDeserializedListenerAdapter;
@@ -16,8 +15,10 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.amqp.RabbitTemplateConfigurer;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -73,16 +74,13 @@ public class AbstractJsonDeserializedJsonStrListenerAdapterTest {
         return messageListenerContainer;
     }
 
+    /**
+     * we are using {@link AbstractJsonDeserializedListenerAdapter} to deserialize JSON strings, SimpleMessageConverter
+     * is enough, if we don't populate one, the autoconfiguration will use the Jackson one instead
+     */
     @Bean
-    public RabbitTemplateConfigurer configurer() {
-        return new RabbitTemplateConfigurer() {
-            @Override
-            public RabbitTemplate configure(RabbitTemplate rabbitTemplate) {
-                // override the default jackson message converter
-                rabbitTemplate.setMessageConverter(new SimpleMessageConverter());
-                return rabbitTemplate;
-            }
-        };
+    public SimpleMessageConverter converter() {
+        return new SimpleMessageConverter();
     }
 
     /**
