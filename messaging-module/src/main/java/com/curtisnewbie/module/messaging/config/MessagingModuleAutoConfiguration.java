@@ -1,7 +1,5 @@
 package com.curtisnewbie.module.messaging.config;
 
-import com.curtisnewbie.module.messaging.callback.internal.ConfirmCallbackDelegate;
-import com.curtisnewbie.module.messaging.callback.internal.ReturnsCallbackDelegate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -9,16 +7,9 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.amqp.RabbitTemplateConfigurer;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 /**
  * <p>
@@ -29,12 +20,6 @@ import org.springframework.context.annotation.Import;
  */
 @Slf4j
 public class MessagingModuleAutoConfiguration {
-
-    @Autowired
-    private ConfirmCallbackDelegate confirmCallbackDelegate;
-
-    @Autowired
-    private ReturnsCallbackDelegate returnsCallbackDelegate;
 
     @Autowired
     private ConnectionFactory connectionFactory;
@@ -54,12 +39,6 @@ public class MessagingModuleAutoConfiguration {
 
         // connectionFactory is mandatory dependency
         rabbitTemplate.setConnectionFactory(connectionFactory);
-
-        // register callbacks even though they are not needed, make sure they work out of box
-        rabbitTemplate.setConfirmCallback(confirmCallbackDelegate);
-        log.info("Registered ConfirmCallback '{}'", confirmCallbackDelegate.getClass().getName());
-        rabbitTemplate.setReturnsCallback(returnsCallbackDelegate);
-        log.info("Registered ReturnsCallback '{}'", returnsCallbackDelegate.getClass().getName());
 
         // check if a MessageConverter populated in the context, if so, register it
         try {

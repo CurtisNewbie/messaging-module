@@ -2,6 +2,16 @@
 
 Module for async messaging using RabbitMQ, it provides convenient services and listener adapters for dispatching and consuming messages.
 
+## Implementation
+
+Relevant beans are populated by the `MessagingModuleAutoConfiguration` auto-configuration bean.
+
+A `RabbitTemplate` with default settings is populated if it's not found. However, you do need to provide the `ConnectionFactory` bean, a convenient factory method is provided to create such bean using properties-based configuration, see `SimpleConnectionFactoryBeanFactory`.
+
+`MessageConverter` is automatically configured to use `Jackson2JsonMessageConverter` if no `MessageConverter` bean is found. If you prefer to use the default `SimpleMessageConverter` you will need to populate one by a `@Bean` annotated method.
+
+To send messages, simply inject and use `MessagingService`. Queues, Exchanges, and Listeners are created on your own, through any ways you like. However, there is a listener adapter `AbstractJsonDeserializedListenerAdapter` that conveniently converts json string to generic type.
+
 ## Configuration
 
 Data Type | Property Name | Description | Default Value
