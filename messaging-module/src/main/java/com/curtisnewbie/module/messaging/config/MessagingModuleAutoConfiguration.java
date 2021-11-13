@@ -1,5 +1,8 @@
 package com.curtisnewbie.module.messaging.config;
 
+import com.curtisnewbie.common.util.JsonUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -56,8 +59,17 @@ public class MessagingModuleAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(value = MessageConverter.class)
-    public MessageConverter jackson2JsonMessageConverter() {
+    public MessageConverter jackson2JsonMessageConverter(ObjectMapper om) {
         log.info("No MessageConverter found, populating bean '{}'", Jackson2JsonMessageConverter.class.getName());
-        return new Jackson2JsonMessageConverter();
+        return new Jackson2JsonMessageConverter(om);
+    }
+
+    /** Only populate {@link com.fasterxml.jackson.databind.ObjectMapper} when it's not found */
+    @Bean
+    @ConditionalOnMissingBean(value = ObjectMapper.class)
+    public ObjectMapper objectMapper() {
+        ObjectMapper om = JsonUtils.constructsJsonMapper();
+        om.registerModule(new JavaTimeModule());
+        return om;
     }
 }
