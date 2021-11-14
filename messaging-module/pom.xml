@@ -106,11 +106,18 @@
       <dependency>
         <groupId>com.curtisnewbie</groupId>
         <artifactId>curtisnewbie-bom</artifactId>
-        <version>micro-2.0.0</version>
+        <version>micro-2.0.1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <url>https://maven.pkg.github.com/curtisnewbie/messaging-module</url>
+    </repository>
+  </distributionManagement>
 
 </project>
