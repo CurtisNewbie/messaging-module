@@ -130,4 +130,10 @@
     </repository>
   </distributionManagement>
 
+  <repositories>
+    <repository>
+      <id>curtisnewbie.bom</id>
+      <url>https://maven.pkg.github.com/curtisnewbie/curtisnewbie-bom</url>
+    </repository>
+  </repositories>
 </project>
