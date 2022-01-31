@@ -16,6 +16,8 @@
   <name>messaging-module</name>
   <description>Module for messaging</description>
   <properties>
+    <log-tracing-module.version>2.0.2-SNAPSHOT</log-tracing-module.version>
+    <common-module.version>2.0.7-SNAPSHOT</common-module.version>
     <java.version>8</java.version>
   </properties>
 
@@ -50,6 +52,7 @@
     <dependency>
       <groupId>com.curtisnewbie</groupId>
       <artifactId>common-module</artifactId>
+      <version>${common-module.version}</version>
       <exclusions>
         <exclusion>
           <groupId>com.github.pagehelper</groupId>
@@ -70,6 +73,7 @@
     <dependency>
       <groupId>com.curtisnewbie</groupId>
       <artifactId>log-tracing-module</artifactId>
+      <version>${log-tracing-module.version}</version>
     </dependency>
 
     <dependency>
