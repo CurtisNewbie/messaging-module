@@ -11,7 +11,7 @@
 
   <groupId>com.curtisnewbie</groupId>
   <artifactId>messaging-module</artifactId>
-  <version>2.0.3-SNAPSHOT</version>
+  <version>2.0.4-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>messaging-module</name>
   <description>Module for messaging</description>
@@ -111,17 +111,5 @@
       </plugin>
     </plugins>
   </build>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.curtisnewbie</groupId>
-        <artifactId>curtisnewbie-bom</artifactId>
-        <version>micro-2.0.2</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
 </project>
