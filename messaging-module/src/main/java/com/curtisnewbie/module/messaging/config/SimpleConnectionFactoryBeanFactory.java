@@ -1,6 +1,11 @@
 package com.curtisnewbie.module.messaging.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 /**
@@ -13,8 +18,9 @@ import org.springframework.core.env.Environment;
  *
  * @author yongjie.zhuang
  */
+@Slf4j
+@Configuration
 public class SimpleConnectionFactoryBeanFactory {
-
 
     /**
      * <p>
@@ -32,7 +38,10 @@ public class SimpleConnectionFactoryBeanFactory {
      * @param environment environment used to get the required property
      * @return a new CachingConnectionFactory that can be further configured
      */
-    public static CachingConnectionFactory createByProperties(Environment environment) {
+    @Bean
+    @ConditionalOnMissingBean(ConnectionFactory.class)
+    public CachingConnectionFactory createByProperties(Environment environment) {
+        log.info("No ConnectionFactory found, populating bean '{}'", CachingConnectionFactory.class);
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
         connectionFactory.setVirtualHost(environment.getRequiredProperty("spring.rabbitmq.virtualHost"));
         connectionFactory.setHost(environment.getRequiredProperty("spring.rabbitmq.host"));

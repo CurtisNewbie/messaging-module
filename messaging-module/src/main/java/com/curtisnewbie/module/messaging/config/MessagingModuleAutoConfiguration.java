@@ -25,9 +25,6 @@ import org.springframework.context.annotation.Bean;
 public class MessagingModuleAutoConfiguration {
 
     @Autowired
-    private ConnectionFactory connectionFactory;
-
-    @Autowired
     private ApplicationContext applicationContext;
 
     /**
@@ -35,7 +32,7 @@ public class MessagingModuleAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(RabbitTemplate.class)
-    public RabbitTemplate rabbitTemplate() {
+    public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
         log.info("No RabbitTemplate found, populating one with default settings");
 
         RabbitTemplate rabbitTemplate = new RabbitTemplate();
@@ -47,7 +44,7 @@ public class MessagingModuleAutoConfiguration {
         try {
             MessageConverter msgCvt = applicationContext.getBean(MessageConverter.class);
             rabbitTemplate.setMessageConverter(msgCvt);
-            log.info("Registered MessageConverter: '{}'", msgCvt.getClass().getName());
+            log.info("Registered MessageConverter: '{}'", msgCvt.getClass());
         } catch (NoSuchBeanDefinitionException e) {
             log.debug("No MessageConverter found, use the default one", e);
         }
@@ -60,7 +57,7 @@ public class MessagingModuleAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(value = MessageConverter.class)
     public MessageConverter jackson2JsonMessageConverter(ObjectMapper om) {
-        log.info("No MessageConverter found, populating bean '{}'", Jackson2JsonMessageConverter.class.getName());
+        log.info("No MessageConverter found, populating bean '{}'", Jackson2JsonMessageConverter.class);
         return new Jackson2JsonMessageConverter(om);
     }
 

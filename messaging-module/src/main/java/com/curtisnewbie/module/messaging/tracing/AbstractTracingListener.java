@@ -34,7 +34,11 @@ public abstract class AbstractTracingListener<T> extends MessageListenerAdapter 
     private void handleMessage(T t, Message message) {
         String traceId = MessageTracingUtil.getTraceId(message);
         MdcUtil.setTraceId(traceId);
-        onMessage(t, message);
+        try {
+            onMessage(t, message);
+        } finally {
+            MdcUtil.removeTraceId();
+        }
     }
 
     @Override

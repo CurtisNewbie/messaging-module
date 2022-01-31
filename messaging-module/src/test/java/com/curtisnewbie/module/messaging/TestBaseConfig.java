@@ -24,12 +24,4 @@ public class TestBaseConfig {
         return f;
     }
 
-    @Autowired
-    private Environment environment;
-
-    @Bean
-    public ConnectionFactory connectionFactory() {
-        return SimpleConnectionFactoryBeanFactory.createByProperties(environment);
-    }
-
 }
