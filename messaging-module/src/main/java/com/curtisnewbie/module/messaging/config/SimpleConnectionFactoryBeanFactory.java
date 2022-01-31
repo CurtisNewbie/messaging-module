@@ -18,7 +18,8 @@ public class SimpleConnectionFactoryBeanFactory {
 
     /**
      * <p>
-     * Create a basic {@link CachingConnectionFactory} based on a set of property values
+     * Create a basic {@link CachingConnectionFactory} based on a set of property values, the publisher confirm is
+     * enabled and set to {@link CachingConnectionFactory.ConfirmType#SIMPLE}
      * </p>
      * <ul>
      *   <li>spring.rabbitmq.virtualHost</li>
@@ -38,6 +39,7 @@ public class SimpleConnectionFactoryBeanFactory {
         connectionFactory.setPassword(environment.getRequiredProperty("spring.rabbitmq.password"));
         connectionFactory.setUsername(environment.getRequiredProperty("spring.rabbitmq.username"));
         connectionFactory.setPort(environment.getRequiredProperty("spring.rabbitmq.port", Integer.class));
+        connectionFactory.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.SIMPLE);
         return connectionFactory;
     }
 }
