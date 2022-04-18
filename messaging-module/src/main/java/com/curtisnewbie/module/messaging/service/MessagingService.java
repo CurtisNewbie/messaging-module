@@ -1,12 +1,9 @@
 package com.curtisnewbie.module.messaging.service;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
-import org.springframework.amqp.rabbit.connection.CorrelationData;
-import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 /**

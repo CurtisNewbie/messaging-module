@@ -20,12 +20,6 @@ public class MessageTracingConfig {
     public static final String IS_ENABLED_PROP_KEY = "messaging-module.tracing.enabled";
 
     @Value("${" + IS_ENABLED_PROP_KEY + ":false}")
-    private boolean isEnabled;
+    private boolean isTraced;
 
-    @PostConstruct
-    void onInit() {
-        if (!isEnabled)
-            log.info("Log-tracing for messages is disabled, enabled it by setting '{}=true', note that it does affect header exchange",
-                    IS_ENABLED_PROP_KEY);
-    }
 }

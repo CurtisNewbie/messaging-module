@@ -29,7 +29,8 @@ public class MessagingServiceImpl implements MessagingService {
     @Override
     public void send(@NotNull @Valid MessagingParam param) {
         MessagePostProcessor mpp = param.getMessagePostProcessor();
-        mpp = new GeneralPropertiesMessagePostProcessor(param.getDeliveryMode(), messageTracingConfig.isEnabled()).wrap(mpp);
+        mpp = new GeneralPropertiesMessagePostProcessor(param.getDeliveryMode(), messageTracingConfig.isTraced())
+                .wrap(mpp);
 
         rabbitTemplate.convertAndSend(param.getExchange(),
                 param.getRoutingKey(),
@@ -41,10 +42,10 @@ public class MessagingServiceImpl implements MessagingService {
     private static class GeneralPropertiesMessagePostProcessor implements MessagePostProcessor {
         private final MessageDeliveryMode deliveryMode;
         private final boolean tracingEnabled;
-        private MessagePostProcessor wrapped = null;
+        private MessagePostProcessor delegate = null;
 
         public GeneralPropertiesMessagePostProcessor(MessageDeliveryMode deliveryMode, boolean tracingEnabled) {
-            this.deliveryMode = deliveryMode;
+            this.deliveryMode = deliveryMode != null ? deliveryMode : MessageDeliveryMode.PERSISTENT;
             this.tracingEnabled = tracingEnabled;
         }
 
@@ -58,15 +59,16 @@ public class MessagingServiceImpl implements MessagingService {
                 if (traceId != null)
                     MessageTracingUtil.setTraceId(message, traceId);
             }
-            if (wrapped != null)
-                return wrapped.postProcessMessage(message);
+            if (delegate != null)
+                return delegate.postProcessMessage(message);
             else return message;
         }
 
+        /** Wrap the {@link org.springframework.amqp.core.MessagePostProcessor} */
         public MessagePostProcessor wrap(MessagePostProcessor mpp) {
-            if (this.wrapped != null)
+            if (this.delegate != null)
                 throw new IllegalStateException("Already wrapped a post processor");
-            this.wrapped = mpp;
+            this.delegate = mpp;
             return this;
         }
     }
