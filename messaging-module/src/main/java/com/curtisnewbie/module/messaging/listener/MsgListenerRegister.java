@@ -15,7 +15,7 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
- * Register of {@link MsgListener} beans
+ * Registration of {@link MsgListener} beans
  *
  * @author yongj.zhuang
  */

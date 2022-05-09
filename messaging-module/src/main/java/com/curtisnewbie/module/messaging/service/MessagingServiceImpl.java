@@ -1,6 +1,5 @@
 package com.curtisnewbie.module.messaging.service;
 
-import com.curtisnewbie.module.tracing.common.MdcUtil;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -8,7 +7,6 @@ import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
