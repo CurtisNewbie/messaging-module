@@ -24,23 +24,24 @@ public class MessagingParam {
     /**
      * Message payload, will be serialised as JSON string
      */
-    @NotNull
-    private final Object payload;
+    @NotNull(message = "payload must not be null")
+    private Object payload;
 
     /** Exchange name */
-    @NotEmpty
-    private final String exchange;
+    @NotEmpty(message = "exchange can't be empty")
+    private String exchange;
 
-    /** Routing key */
-    @NotEmpty
-    private final String routingKey;
+    /** Routing key, by default it's '#' {@link MessagingService#DEFAULT_ROUTING_KEY} */
+    @Nullable
+    private String routingKey = MessagingServiceImpl.DEFAULT_ROUTING_KEY;
+
+    /** Delivery mode, by default it's {@link org.springframework.amqp.core.MessageDeliveryMode#PERSISTENT} */
+    @Nullable
+    private MessageDeliveryMode deliveryMode = MessageDeliveryMode.PERSISTENT;
 
     @Nullable
-    private final MessageDeliveryMode deliveryMode;
+    private CorrelationData correlationData;
 
     @Nullable
-    private final CorrelationData correlationData;
-
-    @Nullable
-    private final MessagePostProcessor messagePostProcessor;
+    private MessagePostProcessor messagePostProcessor;
 }
