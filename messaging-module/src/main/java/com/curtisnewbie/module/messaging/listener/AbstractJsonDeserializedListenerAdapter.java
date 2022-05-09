@@ -6,6 +6,7 @@ import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
+import org.springframework.util.Assert;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
@@ -45,7 +46,7 @@ import java.util.Objects;
 public abstract class AbstractJsonDeserializedListenerAdapter<T> extends MessageListenerAdapter {
 
     private static final String INHERITED_METHOD_NAME = "handle";
-    private final Class<?> tClazz;
+    private final Class<T> tClazz;
 
     protected AbstractJsonDeserializedListenerAdapter() {
         Method[] methods = this.getClass().getMethods();
@@ -53,19 +54,17 @@ public abstract class AbstractJsonDeserializedListenerAdapter<T> extends Message
         for (Method m : methods) {
             if (m.getName().equals(INHERITED_METHOD_NAME)) {
 
+                // the first one being the pojo and the second one being the Message object
                 if (m.getParameterCount() != 2 && Objects.equals(m.getParameterTypes()[1], org.springframework.messaging.Message.class))
                     continue;
 
-                if (handleMethod != null) {
-                    throw new IllegalStateException(this.getClass().getSimpleName() + " doesn't allow overloading" +
-                            INHERITED_METHOD_NAME + "method");
-                }
                 handleMethod = m;
                 break;
             }
         }
         try {
-            this.tClazz = Class.forName(handleMethod.getGenericParameterTypes()[0].getTypeName());
+            Assert.notNull(handleMethod, "Unable to find method \"handle(T t, Message message)\"");
+            this.tClazz = (Class<T>) Class.forName(handleMethod.getGenericParameterTypes()[0].getTypeName());
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Unable to resolve type of T");
         }
@@ -86,13 +85,12 @@ public abstract class AbstractJsonDeserializedListenerAdapter<T> extends Message
      * Method invoked by the listener container, this is where json string deserialized as T object
      */
     private void handleMessageInternal(String json, Message message) {
-        T t = null;
         try {
-            t = (T) JsonUtils.readValueAsObject(json, tClazz);
+            final T t = JsonUtils.readValueAsObject(json, tClazz);
+            handle(t, message);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Unable to deserialize json", e);
         }
-        handle(t, message);
     }
 
     @Override

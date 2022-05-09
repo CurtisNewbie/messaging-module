@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 /**
  * <p>
@@ -39,6 +42,9 @@ public class MessagingModuleAutoConfiguration {
 
         // connectionFactory is mandatory dependency
         rabbitTemplate.setConnectionFactory(connectionFactory);
+
+        // default retry template
+        rabbitTemplate.setRetryTemplate(defaultRetryTemplate());
 
         // check if a MessageConverter populated in the context, if so, register it
         try {
@@ -68,5 +74,24 @@ public class MessagingModuleAutoConfiguration {
         ObjectMapper om = JsonUtils.constructsJsonMapper();
         om.registerModule(new JavaTimeModule());
         return om;
+    }
+
+    /** Default retry template */
+    public static RetryTemplate defaultRetryTemplate() {
+        final RetryTemplate rt = new RetryTemplate();
+
+        // backoff
+        final ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+        backOffPolicy.setInitialInterval(500);
+        backOffPolicy.setMultiplier(2.0);
+        backOffPolicy.setMaxInterval(5000);
+        rt.setBackOffPolicy(backOffPolicy);
+
+        // retry
+        final SimpleRetryPolicy rp = new SimpleRetryPolicy();
+        rp.setMaxAttempts(8);
+
+        rt.setRetryPolicy(rp);
+        return rt;
     }
 }
