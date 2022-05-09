@@ -33,11 +33,11 @@ public class MessagingParam {
 
     /** Routing key, by default it's '#' {@link MessagingService#DEFAULT_ROUTING_KEY} */
     @Nullable
-    private String routingKey = MessagingServiceImpl.DEFAULT_ROUTING_KEY;
+    private String routingKey;
 
     /** Delivery mode, by default it's {@link org.springframework.amqp.core.MessageDeliveryMode#PERSISTENT} */
     @Nullable
-    private MessageDeliveryMode deliveryMode = MessageDeliveryMode.PERSISTENT;
+    private MessageDeliveryMode deliveryMode;
 
     @Nullable
     private CorrelationData correlationData;

@@ -8,6 +8,7 @@ import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -29,6 +30,9 @@ public class MessagingServiceImpl implements MessagingService {
         mpp = new GeneralPropertiesMessagePostProcessor(param.getDeliveryMode())
                 .wrap(mpp);
 
+        if (param.getRoutingKey() == null)
+            param.setRoutingKey(MessagingService.DEFAULT_ROUTING_KEY);
+
         rabbitTemplate.convertAndSend(param.getExchange(),
                 param.getRoutingKey(),
                 param.getPayload(),
@@ -43,6 +47,7 @@ public class MessagingServiceImpl implements MessagingService {
                 .payload(payload)
                 .exchange(exchange)
                 .deliveryMode(MessageDeliveryMode.PERSISTENT)
+                .routingKey(DEFAULT_ROUTING_KEY)
                 .build());
     }
 
