@@ -7,7 +7,6 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerEndpoint;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistrar;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.InvocationTargetException;
@@ -29,9 +28,6 @@ public class MsgListenerRegister implements RabbitListenerConfigurer {
     @Autowired
     private AmqpAdmin amqpAdmin;
 
-    @Value("${spring.application.name: anonymous}")
-    private String appName;
-
     @Override
     public void configureRabbitListeners(RabbitListenerEndpointRegistrar registrar) {
         final String[] beanDefinitionNames = applicationContext.getBeanDefinitionNames();
@@ -48,9 +44,10 @@ public class MsgListenerRegister implements RabbitListenerConfigurer {
                 declareBindings(msgListener);
 
                 // register reflective listener for the endpoint
+                final String queueName = msgListener.queue();
                 final SimpleRabbitListenerEndpoint endpoint = new SimpleRabbitListenerEndpoint();
-                endpoint.setId(appName + "-" + msgListener.queue() + "-" + timestamp());
-                endpoint.setQueueNames(msgListener.queue());
+                endpoint.setId(endpointId(queueName));
+                endpoint.setQueueNames(queueName);
                 endpoint.setMessageListener(message -> {
                     try {
                         m.invoke(bean, messageConverter.fromMessage(message));
@@ -82,9 +79,15 @@ public class MsgListenerRegister implements RabbitListenerConfigurer {
         }
     }
 
-    protected String timestamp() {
+    protected String endpointId(String queue) {
+        return queue + "-" + timestamp(5);
+    }
+
+    public static String timestamp(int lastNDigits) {
         final String t = System.currentTimeMillis() + "";
         final int len = t.length();
-        return t.substring(len - 5, len);
+        if (lastNDigits > len)
+            return t;
+        return t.substring(len - lastNDigits, len);
     }
 }
