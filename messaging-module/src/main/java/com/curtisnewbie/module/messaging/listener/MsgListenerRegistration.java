@@ -6,12 +6,13 @@ import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerEndpoint;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistrar;
 import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.*;
 import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.concurrent.*;
 
 /**
  * Registration of {@link MsgListener} beans
@@ -19,7 +20,7 @@ import java.util.Objects;
  * @author yongj.zhuang
  */
 @Slf4j
-public class MsgListenerRegister implements RabbitListenerConfigurer {
+public class MsgListenerRegistration implements RabbitListenerConfigurer {
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -27,6 +28,15 @@ public class MsgListenerRegister implements RabbitListenerConfigurer {
     private MessageConverter messageConverter;
     @Autowired
     private AmqpAdmin amqpAdmin;
+
+    /**
+     * Whether the declaration is concurrent (executed in CompletableFuture)
+     * <p>
+     * Because it's executed in CompletableFuture, when exceptions are
+     * thrown by the declaration methods, it won't stop the spring application bootstrap
+     */
+    @Value("${messaging.endpoint.concurrent-declaration: false}")
+    private boolean isConcurrentDeclaration;
 
     @Override
     public void configureRabbitListeners(RabbitListenerEndpointRegistrar registrar) {
@@ -41,7 +51,7 @@ public class MsgListenerRegister implements RabbitListenerConfigurer {
                     continue;
 
                 // try to declare queue, exchange, and bindings
-                declareBindings(msgListener);
+                declareBindings(msgListener, isConcurrentDeclaration);
 
                 // register reflective listener for the endpoint
                 final String queueName = msgListener.queue();
@@ -77,6 +87,17 @@ public class MsgListenerRegister implements RabbitListenerConfigurer {
             amqpAdmin.declareBinding(binding);
             log.info("Declared binding: {}", binding);
         }
+    }
+
+    protected void declareBindings(MsgListener msgListener, boolean isConcurrentRegistration) {
+        if (isConcurrentRegistration)
+            CompletableFuture.runAsync(() -> declareBindings(msgListener))
+                    .exceptionally(e -> {
+                        log.error("Failed to declare queue/exchange/binding", e);
+                        return null;
+                    });
+        else
+            declareBindings(msgListener);
     }
 
     protected String endpointId(String queue) {

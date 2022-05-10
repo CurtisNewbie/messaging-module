@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = ElementType.TYPE)
-@Import(MsgListenerRegister.class)
+@Import(MsgListenerRegistration.class)
 public @interface EnableMsgListener {
 
 }
