@@ -59,6 +59,7 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
                 final SimpleRabbitListenerEndpoint endpoint = new SimpleRabbitListenerEndpoint();
                 endpoint.setId(endpointId(queueName));
                 endpoint.setQueueNames(queueName);
+                endpoint.setAckMode(msgListener.ackMode());
                 endpoint.setMessageListener(message -> {
                     try {
                         m.invoke(bean, messageConverter.fromMessage(message));

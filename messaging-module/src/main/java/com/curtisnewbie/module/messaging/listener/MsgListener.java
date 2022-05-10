@@ -1,6 +1,7 @@
 package com.curtisnewbie.module.messaging.listener;
 
 import com.curtisnewbie.module.messaging.service.MessagingService;
+import org.springframework.amqp.core.AcknowledgeMode;
 
 import java.lang.annotation.*;
 
@@ -34,5 +35,11 @@ public @interface MsgListener {
      * Routing Key, by default it's '#'
      */
     String routingKey() default MessagingService.DEFAULT_ROUTING_KEY;
+
+    /**
+     * AcknowledgeMode, by default it's AUTO (that will return ack/nack based on whether or not the listener method
+     * returns normally)
+     */
+    AcknowledgeMode ackMode() default AcknowledgeMode.AUTO;
 
 }
