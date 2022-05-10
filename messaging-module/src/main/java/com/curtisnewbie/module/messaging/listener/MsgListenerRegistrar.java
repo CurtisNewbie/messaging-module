@@ -6,6 +6,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerEndpoint;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistrar;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.context.ApplicationContext;
 
@@ -20,7 +21,7 @@ import java.util.concurrent.*;
  * @author yongj.zhuang
  */
 @Slf4j
-public class MsgListenerRegistration implements RabbitListenerConfigurer {
+public class MsgListenerRegistrar implements RabbitListenerConfigurer, InitializingBean {
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -32,11 +33,17 @@ public class MsgListenerRegistration implements RabbitListenerConfigurer {
     /**
      * Whether the declaration is concurrent (executed in CompletableFuture)
      * <p>
-     * Because it's executed in CompletableFuture, when exceptions are
-     * thrown by the declaration methods, it won't stop the spring application bootstrap
+     * Because it's executed in CompletableFuture, when exceptions are thrown by the declaration methods, it won't stop
+     * the spring application bootstrap
      */
     @Value("${messaging.endpoint.concurrent-declaration: false}")
     private boolean isConcurrentDeclaration;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        if (isConcurrentDeclaration)
+            log.info("Concurrent declaration of Queue, Exchange and Binding is enabled");
+    }
 
     @Override
     public void configureRabbitListeners(RabbitListenerEndpointRegistrar registrar) {
@@ -93,7 +100,7 @@ public class MsgListenerRegistration implements RabbitListenerConfigurer {
         if (isConcurrentRegistration)
             CompletableFuture.runAsync(() -> declareBindings(msgListener))
                     .exceptionally(e -> {
-                        log.error("Failed to declare queue/exchange/binding", e);
+                        log.error("Failed to declare Queue, Exchange or Binding", e);
                         return null;
                     });
         else
