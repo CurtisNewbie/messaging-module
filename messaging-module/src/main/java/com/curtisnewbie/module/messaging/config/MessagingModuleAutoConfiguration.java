@@ -35,7 +35,7 @@ public class MessagingModuleAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(RabbitTemplate.class)
-    public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
+    public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory, final MessageConverter messageConverter) {
         log.info("No RabbitTemplate found, populating one with default settings");
 
         RabbitTemplate rabbitTemplate = new RabbitTemplate();
@@ -46,14 +46,10 @@ public class MessagingModuleAutoConfiguration {
         // default retry template
         rabbitTemplate.setRetryTemplate(defaultRetryTemplate());
 
-        // check if a MessageConverter populated in the context, if so, register it
-        try {
-            MessageConverter msgCvt = applicationContext.getBean(MessageConverter.class);
-            rabbitTemplate.setMessageConverter(msgCvt);
-            log.info("Registered MessageConverter: '{}'", msgCvt.getClass());
-        } catch (NoSuchBeanDefinitionException e) {
-            log.debug("No MessageConverter found, use the default one", e);
-        }
+        // message converter
+        rabbitTemplate.setMessageConverter(messageConverter);
+        log.info("Registered MessageConverter: '{}'", messageConverter.getClass());
+
         return rabbitTemplate;
     }
 
