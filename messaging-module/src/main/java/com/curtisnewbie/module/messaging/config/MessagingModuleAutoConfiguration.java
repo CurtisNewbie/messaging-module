@@ -8,7 +8,6 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
@@ -29,6 +28,8 @@ public class MessagingModuleAutoConfiguration {
 
     @Autowired
     private ApplicationContext applicationContext;
+    @Autowired
+    private MessagingModuleProperties properties;
 
     /**
      * Only populate a {@code RabbitTemplate} bean with default settings when there is no such bean found
@@ -73,19 +74,19 @@ public class MessagingModuleAutoConfiguration {
     }
 
     /** Default retry template */
-    public static RetryTemplate defaultRetryTemplate() {
+    public RetryTemplate defaultRetryTemplate() {
         final RetryTemplate rt = new RetryTemplate();
 
         // backoff
         final ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
-        backOffPolicy.setInitialInterval(500);
-        backOffPolicy.setMultiplier(2.0);
-        backOffPolicy.setMaxInterval(5000);
+        backOffPolicy.setInitialInterval(properties.getBackOffInitialInterval());
+        backOffPolicy.setMultiplier(properties.getBackOffMultiplier());
+        backOffPolicy.setMaxInterval(properties.getBackOffMaxInterval());
         rt.setBackOffPolicy(backOffPolicy);
 
         // retry
         final SimpleRetryPolicy rp = new SimpleRetryPolicy();
-        rp.setMaxAttempts(8);
+        rp.setMaxAttempts(properties.getTryMaxAttempt());
 
         rt.setRetryPolicy(rp);
         return rt;

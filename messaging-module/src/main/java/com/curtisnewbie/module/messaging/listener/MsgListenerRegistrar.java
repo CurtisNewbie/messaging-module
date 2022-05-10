@@ -1,5 +1,6 @@
 package com.curtisnewbie.module.messaging.listener;
 
+import com.curtisnewbie.module.messaging.config.MessagingModuleProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
@@ -29,19 +30,12 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
     private MessageConverter messageConverter;
     @Autowired
     private AmqpAdmin amqpAdmin;
-
-    /**
-     * Whether the declaration is concurrent (executed in CompletableFuture)
-     * <p>
-     * Because it's executed in CompletableFuture, when exceptions are thrown by the declaration methods, it won't stop
-     * the spring application bootstrap
-     */
-    @Value("${messaging.endpoint.concurrent-declaration: false}")
-    private boolean isConcurrentDeclaration;
+    @Autowired
+    private MessagingModuleProperties messagingModuleProperties;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        if (isConcurrentDeclaration)
+        if (messagingModuleProperties.isConcurrentDeclaration())
             log.info("Concurrent declaration of Queue, Exchange and Binding is enabled");
     }
 
@@ -58,7 +52,7 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
                     continue;
 
                 // try to declare queue, exchange, and bindings
-                declareBindings(msgListener, isConcurrentDeclaration);
+                declareBindings(msgListener, messagingModuleProperties.isConcurrentDeclaration());
 
                 // register reflective listener for the endpoint
                 final String queueName = msgListener.queue();
