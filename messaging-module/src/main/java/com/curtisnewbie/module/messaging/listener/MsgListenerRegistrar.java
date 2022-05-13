@@ -16,6 +16,8 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.*;
 
+import static java.lang.String.*;
+
 /**
  * Registration of {@link MsgListener} beans
  *
@@ -64,7 +66,8 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
                     try {
                         m.invoke(bean, messageConverter.fromMessage(message));
                     } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new IllegalStateException("Failed to invoke method on @MsgListener method", e);
+                        throw new IllegalStateException(
+                                format("Failed to invoke @MsgListener annotated method '%s' on class '%s'", m, clz), e);
                     }
                 });
                 registrar.registerEndpoint(endpoint);
