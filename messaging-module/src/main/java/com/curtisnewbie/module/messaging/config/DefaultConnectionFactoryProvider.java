@@ -31,13 +31,12 @@ public class DefaultConnectionFactoryProvider {
 
     /**
      * <p>
-     * Create a basic {@link CachingConnectionFactory} based on a set of property values, the publisher confirm is
-     * enabled and set to {@link CachingConnectionFactory.ConfirmType#SIMPLE}
+     * Create a basic {@link CachingConnectionFactory} based on a set of property values retrieved from the {@link Environment}
      * </p>
-     * See {@link ConnectionFactoryProp} for property keys used
+     * See {@link ConnectionFactoryProp} for properties being used
      *
      * @param environment environment used to get the required property
-     * @return a new CachingConnectionFactory that can be further configured
+     * @return CachingConnectionFactory
      */
     @Bean
     @ConditionalOnMissingBean(ConnectionFactory.class)
