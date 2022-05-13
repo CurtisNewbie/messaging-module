@@ -34,13 +34,7 @@ public class DefaultConnectionFactoryProvider {
      * Create a basic {@link CachingConnectionFactory} based on a set of property values, the publisher confirm is
      * enabled and set to {@link CachingConnectionFactory.ConfirmType#SIMPLE}
      * </p>
-     * <ul>
-     *   <li>spring.rabbitmq.virtualHost</li>
-     *   <li>spring.rabbitmq.host</li>
-     *   <li>spring.rabbitmq.password</li>
-     *   <li>spring.rabbitmq.username</li>
-     *   <li>spring.rabbitmq.port</li>
-     * </ul>
+     * See {@link ConnectionFactoryProp} for property keys used
      *
      * @param environment environment used to get the required property
      * @return a new CachingConnectionFactory that can be further configured
@@ -118,21 +112,32 @@ public class DefaultConnectionFactoryProvider {
     @Getter
     public enum ConnectionFactoryProp {
 
+        /** Virtual host */
         VIRTUAL_HOST("messaging.rabbitmq.virtualHost", "spring.rabbitmq.virtualHost", "Virtual Host for RabbitMQ"),
 
+        /** Host */
         HOST("messaging.rabbitmq.host", "spring.rabbitmq.host", "Host for RabbitMQ"),
 
+        /** Password */
         PASSWORD("messaging.rabbitmq.password", "spring.rabbitmq.password", "Password for RabbitMQ"),
 
+        /** Username */
         USERNAME("messaging.rabbitmq.username", "spring.rabbitmq.username", "Username for RabbitMQ"),
 
+        /** Port */
         PORT("messaging.rabbitmq.port", "spring.rabbitmq.port", "Port for RabbitMQ"),
 
+        /** ConfirmType */
         CONFIRM_TYPE("messaging.rabbitmq.publisherConfirmType", null, format("Publisher Confirm Type (%s) for RabbitMQ", Arrays.asList(CachingConnectionFactory.ConfirmType.values())));
 
+        /** Primary property key */
         private final String key;
+
+        /** backward compatible property key */
         @Nullable
         private final String compatibleKey; // for backward compatibility
+
+        /** description of the property */
         private final String desc;
 
         ConnectionFactoryProp(String key, String compatibleKey, String description) {
