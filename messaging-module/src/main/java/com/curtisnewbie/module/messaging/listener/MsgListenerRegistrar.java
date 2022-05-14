@@ -5,11 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerEndpoint;
+import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistrar;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.context.ApplicationContext;
+import org.springframework.lang.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,6 +36,9 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
     private AmqpAdmin amqpAdmin;
     @Autowired
     private MessagingModuleProperties messagingModuleProperties;
+    @Autowired(required = false)
+    @Nullable
+    private RabbitListenerContainerFactory<?> rabbitListenerContainerFactory;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -70,7 +75,7 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
                                 format("Failed to invoke @MsgListener annotated method '%s' on class '%s'", m, clz), e);
                     }
                 });
-                registrar.registerEndpoint(endpoint);
+                registrar.registerEndpoint(endpoint, rabbitListenerContainerFactory);
             }
         }
     }

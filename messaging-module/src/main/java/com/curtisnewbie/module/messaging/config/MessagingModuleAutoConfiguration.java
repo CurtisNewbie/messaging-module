@@ -4,8 +4,11 @@ import com.curtisnewbie.common.util.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.config.DirectRabbitListenerContainerFactory;
+import org.springframework.amqp.rabbit.config.ListenerContainerFactoryBean;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,9 +47,6 @@ public class MessagingModuleAutoConfiguration {
         // connectionFactory is mandatory dependency
         rabbitTemplate.setConnectionFactory(connectionFactory);
 
-        // default retry template
-        rabbitTemplate.setRetryTemplate(defaultRetryTemplate());
-
         // message converter
         rabbitTemplate.setMessageConverter(messageConverter);
         log.info("Registered MessageConverter: '{}'", messageConverter.getClass());
@@ -71,6 +71,17 @@ public class MessagingModuleAutoConfiguration {
         ObjectMapper om = JsonUtils.constructsJsonMapper();
         om.registerModule(new JavaTimeModule());
         return om;
+    }
+
+    /** Only populate {@link DirectRabbitListenerContainerFactory} when it's not found */
+    @Bean
+    @ConditionalOnMissingBean(value = RabbitListenerContainerFactory.class)
+    public RabbitListenerContainerFactory<?> defaultListenerContainerFactory(MessageConverter messageConverter) {
+        DirectRabbitListenerContainerFactory containerFactory = new DirectRabbitListenerContainerFactory();
+        containerFactory.setRetryTemplate(defaultRetryTemplate());
+        containerFactory.setMessageConverter(messageConverter);
+        log.info("No RabbitListenerContainerFactory found, populating bean '{}'", containerFactory.getClass());
+        return containerFactory;
     }
 
     /** Default retry template */
