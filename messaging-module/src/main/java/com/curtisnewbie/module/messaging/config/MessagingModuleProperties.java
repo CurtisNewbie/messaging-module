@@ -44,13 +44,13 @@ public class MessagingModuleProperties {
     /**
      * Multiplier for {@link ExponentialBackOffPolicy} used for {@link MsgListener}
      */
-    @Value("${messaging.listener.retry.backoff.multiplier: 1.5}")
+    @Value("${messaging.listener.retry.backoff.multiplier: 2}")
     private int backOffMultiplier;
 
     /**
      * Max Interval for {@link ExponentialBackOffPolicy} used for {@link MsgListener}
      */
-    @Value("${messaging.listener.retry.backoff.max-interval: 2000}")
+    @Value("${messaging.listener.retry.backoff.max-interval: 3000}")
     private int backOffMaxInterval;
 
 }
