@@ -73,33 +73,14 @@ public class MessagingModuleAutoConfiguration {
         return om;
     }
 
-    /** Only populate {@link DirectRabbitListenerContainerFactory} when it's not found */
+    /** Always populate {@link DirectRabbitListenerContainerFactory} */
     @Bean
-    @ConditionalOnMissingBean(value = RabbitListenerContainerFactory.class)
-    public RabbitListenerContainerFactory<?> defaultListenerContainerFactory(MessageConverter messageConverter) {
+    public RabbitListenerContainerFactory<?> rabbitListenerContainerFactory(MessageConverter messageConverter, ConnectionFactory connectionFactory) {
         DirectRabbitListenerContainerFactory containerFactory = new DirectRabbitListenerContainerFactory();
-        containerFactory.setRetryTemplate(defaultRetryTemplate());
+        containerFactory.setConnectionFactory(connectionFactory);
         containerFactory.setMessageConverter(messageConverter);
         log.info("No RabbitListenerContainerFactory found, populating bean '{}'", containerFactory.getClass());
         return containerFactory;
     }
 
-    /** Default retry template */
-    public RetryTemplate defaultRetryTemplate() {
-        final RetryTemplate rt = new RetryTemplate();
-
-        // backoff
-        final ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
-        backOffPolicy.setInitialInterval(properties.getBackOffInitialInterval());
-        backOffPolicy.setMultiplier(properties.getBackOffMultiplier());
-        backOffPolicy.setMaxInterval(properties.getBackOffMaxInterval());
-        rt.setBackOffPolicy(backOffPolicy);
-
-        // retry
-        final SimpleRetryPolicy rp = new SimpleRetryPolicy();
-        rp.setMaxAttempts(properties.getTryMaxAttempt());
-
-        rt.setRetryPolicy(rp);
-        return rt;
-    }
 }

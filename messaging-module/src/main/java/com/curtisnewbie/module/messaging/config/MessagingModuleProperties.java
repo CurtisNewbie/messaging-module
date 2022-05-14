@@ -1,5 +1,6 @@
 package com.curtisnewbie.module.messaging.config;
 
+import com.curtisnewbie.module.messaging.listener.MsgListener;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,27 +30,27 @@ public class MessagingModuleProperties {
     private boolean concurrentDeclaration;
 
     /**
-     * Max attempt for {@link RetryTemplate}
+     * Max attempt for {@link RetryTemplate} used for {@link MsgListener}
      */
-    @Value("${messaging.retry.max-attempt: 8}")
+    @Value("${messaging.listener.retry.max-attempt: 8}")
     private int tryMaxAttempt;
 
     /**
-     * Initial Interval for {@link ExponentialBackOffPolicy}
+     * Initial Interval for {@link ExponentialBackOffPolicy} used for {@link MsgListener}
      */
-    @Value("${messaging.retry.backoff.initial-interval: 500}")
+    @Value("${messaging.listener.retry.backoff.initial-interval: 500}")
     private int backOffInitialInterval;
 
     /**
-     * Multiplier for {@link ExponentialBackOffPolicy}
+     * Multiplier for {@link ExponentialBackOffPolicy} used for {@link MsgListener}
      */
-    @Value("${messaging.retry.backoff.multiplier: 2}")
+    @Value("${messaging.listener.retry.backoff.multiplier: 1.5}")
     private int backOffMultiplier;
 
     /**
-     * Max Interval for {@link ExponentialBackOffPolicy}
+     * Max Interval for {@link ExponentialBackOffPolicy} used for {@link MsgListener}
      */
-    @Value("${messaging.retry.backoff.max-interval: 5000}")
+    @Value("${messaging.listener.retry.backoff.max-interval: 2000}")
     private int backOffMaxInterval;
 
 }

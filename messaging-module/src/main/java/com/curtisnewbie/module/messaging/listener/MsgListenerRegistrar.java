@@ -1,6 +1,7 @@
 package com.curtisnewbie.module.messaging.listener;
 
 import com.curtisnewbie.module.messaging.config.MessagingModuleProperties;
+import com.curtisnewbie.module.messaging.exception.MsgListenerException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
@@ -12,11 +13,15 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.Nullable;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.String.*;
 
@@ -28,6 +33,8 @@ import static java.lang.String.*;
 @Slf4j
 public class MsgListenerRegistrar implements RabbitListenerConfigurer, InitializingBean {
 
+    private RetryTemplate retryTemplate;
+
     @Autowired
     private ApplicationContext applicationContext;
     @Autowired
@@ -35,15 +42,17 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
     @Autowired
     private AmqpAdmin amqpAdmin;
     @Autowired
-    private MessagingModuleProperties messagingModuleProperties;
+    private MessagingModuleProperties properties;
     @Autowired(required = false)
     @Nullable
     private RabbitListenerContainerFactory<?> rabbitListenerContainerFactory;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        if (messagingModuleProperties.isConcurrentDeclaration())
+        if (properties.isConcurrentDeclaration())
             log.info("Concurrent declaration of Queue, Exchange and Binding is enabled");
+
+        retryTemplate = defaultRetryTemplate();
     }
 
     @Override
@@ -59,7 +68,7 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
                     continue;
 
                 // try to declare queue, exchange, and bindings
-                declareBindings(msgListener, messagingModuleProperties.isConcurrentDeclaration());
+                declareBindings(msgListener, properties.isConcurrentDeclaration());
 
                 // register reflective listener for the endpoint
                 final String queueName = msgListener.queue();
@@ -67,17 +76,29 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
                 endpoint.setId(endpointId(queueName));
                 endpoint.setQueueNames(queueName);
                 endpoint.setAckMode(msgListener.ackMode());
-                endpoint.setMessageListener(message -> {
-                    try {
-                        m.invoke(bean, messageConverter.fromMessage(message));
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new IllegalStateException(
-                                format("Failed to invoke @MsgListener annotated method '%s' on class '%s'", m, clz), e);
-                    }
-                });
+                endpoint.setMessageListener(new ReflectiveMessageListener(retryTemplate, m, messageConverter, bean));
                 registrar.registerEndpoint(endpoint, rabbitListenerContainerFactory);
             }
         }
+    }
+
+    /** Default retry template */
+    public RetryTemplate defaultRetryTemplate() {
+        final RetryTemplate rt = new RetryTemplate();
+
+        // backoff
+        final ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+        backOffPolicy.setInitialInterval(properties.getBackOffInitialInterval());
+        backOffPolicy.setMultiplier(properties.getBackOffMultiplier());
+        backOffPolicy.setMaxInterval(properties.getBackOffMaxInterval());
+        rt.setBackOffPolicy(backOffPolicy);
+
+        // retry
+        final SimpleRetryPolicy rp = new SimpleRetryPolicy();
+        rp.setMaxAttempts(properties.getTryMaxAttempt());
+
+        rt.setRetryPolicy(rp);
+        return rt;
     }
 
     protected void declareBindings(MsgListener msgListener) {
@@ -120,5 +141,36 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
         if (lastNDigits > len)
             return t;
         return t.substring(len - lastNDigits, len);
+    }
+
+    public static class ReflectiveMessageListener implements MessageListener {
+
+        private final RetryTemplate retryTemplate;
+        private final Method m;
+        private final MessageConverter messageConverter;
+        private final Object bean;
+
+        public ReflectiveMessageListener(RetryTemplate retryTemplate, Method m, MessageConverter messageConverter, Object bean) {
+            this.retryTemplate = retryTemplate;
+            this.m = m;
+            this.messageConverter = messageConverter;
+            this.bean = bean;
+        }
+
+        @Override
+        public void onMessage(Message message) {
+            retryTemplate.execute((ctx) -> {
+                try {
+                    m.invoke(bean, messageConverter.fromMessage(message));
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new MsgListenerException(format("Failed to invoke @MsgListener annotated method '%s'", m), e);
+                }
+                return null;
+            }, (ctx) -> {
+                // do nothing, because the retry is exhausted already, we just silently drop the message
+                log.error("Failed to retry @MsgListener, message is dropped to prevent indefinite redelivery", ctx.getLastThrowable());
+                return null;
+            });
+        }
     }
 }
