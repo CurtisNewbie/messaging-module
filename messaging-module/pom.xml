@@ -52,16 +52,6 @@
       <groupId>com.curtisnewbie</groupId>
       <artifactId>common-module</artifactId>
       <version>${common-module.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.github.pagehelper</groupId>
-          <artifactId>pagehelper</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.baomidou</groupId>
-          <artifactId>mybatis-plus-boot-starter</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
