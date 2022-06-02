@@ -1,11 +1,15 @@
 package com.curtisnewbie.module.messaging.config;
 
 import com.curtisnewbie.common.util.JsonUtils;
+import com.curtisnewbie.module.messaging.outbox.components.DBOutbox;
+import com.curtisnewbie.module.messaging.outbox.components.DispatchLoop;
+import com.curtisnewbie.module.messaging.outbox.components.Outbox;
+import com.curtisnewbie.module.messaging.service.MessagingService;
+import com.curtisnewbie.module.redisutil.RedisController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.config.DirectRabbitListenerContainerFactory;
-import org.springframework.amqp.rabbit.config.ListenerContainerFactoryBean;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
@@ -13,11 +17,12 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
+
+import java.util.concurrent.locks.Lock;
+import java.util.function.Supplier;
 
 /**
  * <p>
@@ -79,8 +84,23 @@ public class MessagingModuleAutoConfiguration {
         DirectRabbitListenerContainerFactory containerFactory = new DirectRabbitListenerContainerFactory();
         containerFactory.setConnectionFactory(connectionFactory);
         containerFactory.setMessageConverter(messageConverter);
-        log.info("No RabbitListenerContainerFactory found, populating bean '{}'", containerFactory.getClass());
+        log.info("Populating bean '{}'", containerFactory.getClass());
         return containerFactory;
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "messaging.transaction-outbox.enabled", havingValue = "true", matchIfMissing = false)
+    public DispatchLoop dispatchLoop(MessagingService messagingService, Outbox outbox, RedisController redisController) {
+        log.info("Transaction-Outbox enabled, populating DispatchLoop");
+        final Supplier<Lock> lockSupplier = () -> redisController.getLock("message:dispatchloop:global");
+        return new DispatchLoop(outbox::_pull, outbox::_setDispatched, messagingService, lockSupplier);
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "messaging.transaction-outbox.enabled", havingValue = "true", matchIfMissing = false)
+    public Outbox outbox() {
+        log.info("Transaction-Outbox enabled, populating Outbox");
+        return new DBOutbox();
     }
 
 }

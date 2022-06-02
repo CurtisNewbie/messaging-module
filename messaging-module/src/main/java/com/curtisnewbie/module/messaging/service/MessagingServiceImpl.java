@@ -1,5 +1,6 @@
 package com.curtisnewbie.module.messaging.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -8,14 +9,12 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 /**
  * @author yongjie.zhuang
  */
+@Slf4j
 @Service
 public class MessagingServiceImpl implements MessagingService {
 
@@ -23,7 +22,7 @@ public class MessagingServiceImpl implements MessagingService {
     private RabbitTemplate rabbitTemplate;
 
     @Override
-    public void send(@NotNull @Valid MessagingParam param) {
+    public void send(MessagingParam param) {
         MessagePostProcessor mpp = param.getMessagePostProcessor();
         mpp = new GeneralPropertiesMessagePostProcessor(param.getDeliveryMode())
                 .wrap(mpp);
@@ -39,8 +38,7 @@ public class MessagingServiceImpl implements MessagingService {
     }
 
     @Override
-    public void send(@NotNull(message = "payload can't be null") Object payload,
-                     @NotEmpty(message = "exchange can't be empty") String exchange) {
+    public void send(Object payload, String exchange) {
         send(MessagingParam.builder()
                 .payload(payload)
                 .exchange(exchange)
@@ -48,6 +46,8 @@ public class MessagingServiceImpl implements MessagingService {
                 .routingKey(DEFAULT_ROUTING_KEY)
                 .build());
     }
+
+    // ------------------------------------ private helper methods ------------------------------------
 
     private static class GeneralPropertiesMessagePostProcessor implements MessagePostProcessor {
         private final MessageDeliveryMode deliveryMode;

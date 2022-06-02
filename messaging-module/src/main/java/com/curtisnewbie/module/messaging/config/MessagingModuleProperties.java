@@ -53,4 +53,10 @@ public class MessagingModuleProperties {
     @Value("${messaging.listener.retry.backoff.max-interval: 3000}")
     private int backOffMaxInterval;
 
+    /**
+     * Whether transactional-outbox enabled is enabled
+     */
+    @Value("${messaging.transaction-outbox.enabled: false}")
+    private boolean transactionalOutBoxEnabled;
+
 }

@@ -15,8 +15,10 @@
   <packaging>jar</packaging>
   <name>messaging-module</name>
   <description>Module for messaging</description>
+
   <properties>
     <common-module.version>2.1.2-SNAPSHOT</common-module.version>
+    <redis-util-module.version>2.0.2-SNAPSHOT</redis-util-module.version>
     <java.version>8</java.version>
   </properties>
 
@@ -55,6 +57,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.curtisnewbie</groupId>
+      <artifactId>redis-util-module</artifactId>
+      <version>${redis-util-module.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
@@ -63,6 +71,12 @@
       <groupId>org.springframework.amqp</groupId>
       <artifactId>spring-rabbit-junit</artifactId>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.baomidou</groupId>
+      <artifactId>mybatis-plus-boot-starter</artifactId>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
