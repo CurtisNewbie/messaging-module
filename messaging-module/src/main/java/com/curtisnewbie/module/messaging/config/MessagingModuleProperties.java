@@ -56,7 +56,7 @@ public class MessagingModuleProperties {
     /**
      * Whether transactional-outbox enabled is enabled
      */
-    @Value("${messaging.transaction-outbox.enabled: false}")
+    @Value("${messaging.transactional-outbox.enabled: false}")
     private boolean transactionalOutBoxEnabled;
 
 }

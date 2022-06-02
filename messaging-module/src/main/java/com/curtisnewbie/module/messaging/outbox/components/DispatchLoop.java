@@ -1,5 +1,6 @@
 package com.curtisnewbie.module.messaging.outbox.components;
 
+import com.curtisnewbie.common.util.JsonUtils;
 import com.curtisnewbie.common.util.LockUtils;
 import com.curtisnewbie.module.messaging.outbox.dao.MessageOutbox;
 import com.curtisnewbie.module.messaging.service.MessagingParam;
@@ -9,6 +10,7 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -64,9 +66,25 @@ public class DispatchLoop {
         final String routingKey = m.getRoutingKey();
         final String exchange = m.getExchange();
 
+        // todo: it will be great if we can send the payload as string directly to the broker
+        //  without breaking the deserialization for the listener
+
+        Object payload;
+        final String typeName = m.getTypeName();
+        if (StringUtils.hasText(typeName)) {
+            try {
+                final Class<?> clz = Class.forName(typeName);
+                payload = JsonUtils.readValueAsObject(m.getPayload(), clz);
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to deserialize payload object from type name: " + typeName, e);
+            }
+        } else {
+            payload = m.getPayload();
+        }
+
         // send the message to broker
         messagingService.send(MessagingParam.builder()
-                .payload(m.getPayload())
+                .payload(payload)
                 .exchange(exchange)
                 .routingKey(routingKey)
                 .deliveryMode(MessageDeliveryMode.PERSISTENT)

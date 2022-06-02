@@ -33,6 +33,10 @@ public class MessageOutbox extends DaoSkeleton {
     @TableField("payload")
     private String payload;
 
+    /** payload type name */
+    @TableField("type_name")
+    private String typeName;
+
     /** delivery time */
     @TableField("delivery_time")
     private LocalDateTime deliveryTime;

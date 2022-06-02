@@ -25,7 +25,14 @@ public class DBOutbox implements Outbox {
         m.setRoutingKey(mp.getRoutingKey());
         m.setExchange(mp.getExchange());
         m.setStatus(DispatchStatus.DISPATCHING);
-        m.setPayload(payloadToJson(mp.getPayload()));
+
+        if (mp.getPayload() == null) {
+            m.setPayload("");
+            m.setTypeName(String.class.getTypeName());
+        } else {
+            m.setPayload(payloadToJson(mp.getPayload()));
+            m.setTypeName(mp.getPayload().getClass().getTypeName());
+        }
         messageMapper.insert(m);
     }
 
@@ -48,7 +55,6 @@ public class DBOutbox implements Outbox {
     // --------------------------------- private helper methods ----------------------------
 
     private String payloadToJson(Object o) {
-        if (o == null) return "";
         try {
             return JsonUtils.writeValueAsString(o);
         } catch (JsonProcessingException e) {

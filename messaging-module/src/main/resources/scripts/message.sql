@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS message_outbox (
     exchange VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'name of exchange',
     payload VARCHAR(1000) NOT NULL DEFAULT '' COMMENT 'payload',
     status VARCHAR(25) NOT NULL DEFAULT '' COMMENT 'delivery status',
+    type_name VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'payload type name',
     delivery_time TIMESTAMP NULL DEFAULT NULL COMMENT 'delivery time',
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'when the record is created',
     create_by VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'who created this record',

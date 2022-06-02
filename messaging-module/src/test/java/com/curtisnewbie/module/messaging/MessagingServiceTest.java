@@ -1,5 +1,6 @@
 package com.curtisnewbie.module.messaging;
 
+import com.curtisnewbie.module.messaging.outbox.components.Outbox;
 import com.curtisnewbie.module.messaging.service.MessagingParam;
 import com.curtisnewbie.module.messaging.service.MessagingService;
 import lombok.AllArgsConstructor;
@@ -40,12 +41,41 @@ public class MessagingServiceTest {
 
     @Autowired
     private MessagingService messagingService;
-
     @Autowired
     private RabbitListenerTestHarness harness;
+    @Autowired
+    private Outbox outbox;
 
     @Captor
     ArgumentCaptor<DemoBean> demoBeanCaptor;
+
+    @Test
+    public void should_message_be_dispatched_from_outbox() throws InterruptedException {
+        // spied listener
+        Listener spiedListener = harness.getSpy(MOCKED_LISTENER_ID);
+        Assertions.assertNotNull(spiedListener);
+
+        // listener should only receive one message
+        LatchCountDownAndCallRealMethodAnswer answer = this.harness.getLatchAnswerFor(MOCKED_LISTENER_ID,
+                1);
+        Mockito.doAnswer(answer).when(spiedListener).handle(Mockito.any());
+
+        DemoBean payload = new DemoBean(DEMO_BEAN_NAME);
+        outbox.push(MessagingParam.builder()
+                .payload(payload)
+                .exchange(TEST_EXCHANGE)
+                .routingKey(TEST_QUEUE)
+                .build());
+
+        // should receive message before timeout
+        Assertions.assertTrue(answer.await(10));
+
+        // verify that the listener is invoked
+        Mockito.verify(spiedListener).handle(demoBeanCaptor.capture());
+
+        // verify that the payload received matches the one sent
+        Assertions.assertTrue(demoBeanCaptor.getValue().equals(payload));
+    }
 
     @Test
     public void shouldSend() throws InterruptedException {

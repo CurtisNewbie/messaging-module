@@ -89,17 +89,17 @@ public class MessagingModuleAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(value = "messaging.transaction-outbox.enabled", havingValue = "true", matchIfMissing = false)
+    @ConditionalOnProperty(value = "messaging.transactional-outbox.enabled", havingValue = "true", matchIfMissing = false)
     public DispatchLoop dispatchLoop(MessagingService messagingService, Outbox outbox, RedisController redisController) {
-        log.info("Transaction-Outbox enabled, populating DispatchLoop");
+        log.info("Transactional-Outbox enabled, populating DispatchLoop");
         final Supplier<Lock> lockSupplier = () -> redisController.getLock("message:dispatchloop:global");
         return new DispatchLoop(outbox::_pull, outbox::_setDispatched, messagingService, lockSupplier);
     }
 
     @Bean
-    @ConditionalOnProperty(value = "messaging.transaction-outbox.enabled", havingValue = "true", matchIfMissing = false)
+    @ConditionalOnProperty(value = "messaging.transactional-outbox.enabled", havingValue = "true", matchIfMissing = false)
     public Outbox outbox() {
-        log.info("Transaction-Outbox enabled, populating Outbox");
+        log.info("Transactional-Outbox enabled, populating Outbox");
         return new DBOutbox();
     }
 
