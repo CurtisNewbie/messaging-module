@@ -15,6 +15,7 @@ import java.util.function.Supplier;
  * Configuration for Transactional Outbox
  *
  * @author yongj.zhuang
+ * @see EnableTransactionalOutbox
  */
 @Slf4j
 public class TransactionalOutboxConfiguration {

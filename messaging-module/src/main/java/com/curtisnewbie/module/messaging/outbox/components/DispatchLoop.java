@@ -8,7 +8,6 @@ import com.curtisnewbie.module.messaging.service.MessagingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.lang.Nullable;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.StringUtils;
 
@@ -30,6 +29,18 @@ public class DispatchLoop {
     private final MessagingService messagingService;
     private final Supplier<Lock> lockSupplier;
 
+    /**
+     * Construct a DispatchLoop
+     *
+     * @param messageSupplier  supplier of message, the {@code DispatchLoop } will call the supplier to get the
+     *                         un-dispatched messages
+     * @param onDispatched     action to do once the message is dispatched successfully, the argument accepted is the
+     *                         message's id
+     * @param messagingService service to dispatch message to broker
+     * @param lockSupplier     supplier of lock, it's nullable. If the supplier is present, {@code DispatchLoop } wil
+     *                         acquire the lock first before calling {@code messageSupplier} and dispatching the
+     *                         messages
+     */
     public DispatchLoop(Supplier<List<MessageOutbox>> messageSupplier, Consumer<Integer> onDispatched, MessagingService messagingService,
                         @Nullable Supplier<Lock> lockSupplier) {
         this.messageSupplier = messageSupplier;
