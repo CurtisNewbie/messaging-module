@@ -5,12 +5,12 @@ import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Component;
 
 /**
- * Mapper for message
+ * Mapper for message_outbox
  *
  * @author yongj.zhuang
  */
 @Component
 @Mapper
-public interface MessageMapper extends EnhancedMapper<MessageOutbox> {
+public interface MessageOutboxMapper extends EnhancedMapper<MessageOutbox> {
 
 }

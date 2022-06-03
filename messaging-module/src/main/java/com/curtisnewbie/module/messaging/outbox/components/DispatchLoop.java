@@ -23,7 +23,6 @@ import java.util.function.Supplier;
  * @author yongj.zhuang
  */
 @Slf4j
-@EnableScheduling
 public class DispatchLoop {
 
     private final Supplier<List<MessageOutbox>> messageSupplier;

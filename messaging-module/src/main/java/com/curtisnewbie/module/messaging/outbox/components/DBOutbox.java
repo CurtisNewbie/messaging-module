@@ -3,7 +3,7 @@ package com.curtisnewbie.module.messaging.outbox.components;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.curtisnewbie.common.util.JsonUtils;
 import com.curtisnewbie.module.messaging.outbox.dao.MessageOutbox;
-import com.curtisnewbie.module.messaging.outbox.dao.MessageMapper;
+import com.curtisnewbie.module.messaging.outbox.dao.MessageOutboxMapper;
 import com.curtisnewbie.module.messaging.service.MessagingParam;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import java.util.List;
 public class DBOutbox implements Outbox {
 
     @Autowired
-    private MessageMapper messageMapper;
+    private MessageOutboxMapper messageMapper;
 
     @Override
     public void push(MessagingParam mp) {

@@ -8,8 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
-import javax.annotation.PostConstruct;
-
 /**
  * Properties for message-module
  *
@@ -52,11 +50,5 @@ public class MessagingModuleProperties {
      */
     @Value("${messaging.listener.retry.backoff.max-interval: 3000}")
     private int backOffMaxInterval;
-
-    /**
-     * Whether transactional-outbox enabled is enabled
-     */
-    @Value("${messaging.transactional-outbox.enabled: false}")
-    private boolean transactionalOutBoxEnabled;
 
 }
