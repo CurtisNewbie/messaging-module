@@ -1,4 +1,4 @@
-# messaging-module
+# messaging-module V2.0.7
 
 Module for async messaging using RabbitMQ, it provides convenient services and listener adapters for dispatching and consuming messages.
 
@@ -22,18 +22,6 @@ boolean | messaging-module.tracing.enabled | enable log tracing for messages, th
 
 This project depends on the following modules that you must manually install (using `mvn clean install`).
 
-- curtisnewbie-bom
-    - description: BOM file for dependency management
-    - url: https://github.com/CurtisNewbie/curtisnewbie-bom
-    - branch: main
-    - under `/microservice` folder
-
-- log-tracing-module
-    - description: for log tracing between web endpoints and service layers
-    - url: https://github.com/CurtisNewbie/log-tracing-module
-    - branch: main
-
-- common-module
-    - description: for common utility classes 
-    - url: https://github.com/CurtisNewbie/common-module
-    - branch: main
+- [curtisnewbie-bom](https://github.com/CurtisNewbie/curtisnewbie-bom)
+- [common-module v2.1.3](https://github.com/CurtisNewbie/common-module/tree/v2.1.3)
+- [redis-util-module v2.0.3](https://github.com/CurtisNewbie/redis-util-module/tree/v2.0.3)
