@@ -2,23 +2,26 @@ package com.curtisnewbie.module.messaging.listener;
 
 import com.curtisnewbie.module.messaging.config.MessagingModuleProperties;
 import com.curtisnewbie.module.messaging.exception.MsgListenerException;
+import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerEndpoint;
 import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistrar;
+import org.springframework.amqp.rabbit.listener.adapter.MessagingMessageListenerAdapter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.MethodParameter;
 import org.springframework.lang.Nullable;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -79,10 +82,15 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
                 if (msgListener.concurrency() > 0) {
                     endpoint.setConcurrency("" + msgListener.concurrency());
                 }
-                endpoint.setMessageListener(new ReflectiveMessageListener(retryTemplate, m, messageConverter, bean));
+
+                endpoint.setMessageListener(buildMessageListener(retryTemplate, m, messageConverter, bean));
                 registrar.registerEndpoint(endpoint, rabbitListenerContainerFactory);
             }
         }
+    }
+
+    private static MessageListener buildMessageListener(RetryTemplate retryTemplate, Method m, MessageConverter messageConverter, Object bean) {
+        return new ReflectiveMessageListener(retryTemplate, m, messageConverter, bean);
     }
 
     /** Default retry template */
@@ -152,21 +160,26 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
         private final Method m;
         private final MessageConverter messageConverter;
         private final Object bean;
+        private final Type inferredType;
 
         public ReflectiveMessageListener(RetryTemplate retryTemplate, Method m, MessageConverter messageConverter, Object bean) {
             this.retryTemplate = retryTemplate;
             this.m = m;
             this.messageConverter = messageConverter;
             this.bean = bean;
+            this.inferredType = determineInferredType(m);
         }
 
         @Override
         public void onMessage(Message message) {
+            message.getMessageProperties().setInferredArgumentType(this.inferredType);
             retryTemplate.execute((ctx) -> {
                 try {
                     m.invoke(bean, messageConverter.fromMessage(message));
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new MsgListenerException(format("Failed to invoke @MsgListener annotated method '%s'", m), e);
+                    String msg = format("Failed to invoke @MsgListener annotated method '%s'", m);
+                    log.error(msg, e);
+                    throw new MsgListenerException(msg, e);
                 }
                 return null;
             }, (ctx) -> {
@@ -175,5 +188,42 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
                 return null;
             });
         }
+
+        // adapted from Spring's MessagingMessageListenerAdapter
+        private static Type determineInferredType(Method m) {
+            Type genericParameterType = null;
+
+            for (int i = 0; i < m.getParameterCount(); i++) {
+                MethodParameter methodParameter = new MethodParameter(m, i);
+                if (isEligibleParameter(methodParameter)
+                        && (methodParameter.getParameterAnnotations().length == 0
+                        || methodParameter.hasParameterAnnotation(Payload.class))) {
+                    if (genericParameterType == null) {
+                        // batching is not supported by this @MsgListener simple implementation :D, should use Spring's impl instead
+                        genericParameterType = methodParameter.getGenericParameterType();
+                    }
+                    else {
+                        return null;
+                    }
+                }
+            }
+            return genericParameterType;
+        }
+    }
+
+    // adapted from Spring's MessagingMessageListenerAdapter
+    private static boolean isEligibleParameter(MethodParameter methodParameter) {
+        Type parameterType = methodParameter.getGenericParameterType();
+        if (parameterType.equals(Channel.class)
+                || parameterType.equals(org.springframework.amqp.core.Message.class)) {
+            return false;
+        }
+        if (parameterType instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) parameterType;
+            if (parameterizedType.getRawType().equals(Message.class)) {
+                return !(parameterizedType.getActualTypeArguments()[0] instanceof WildcardType);
+            }
+        }
+        return !parameterType.equals(Message.class); // could be Message without a generic type
     }
 }
