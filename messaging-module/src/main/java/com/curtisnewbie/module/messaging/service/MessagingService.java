@@ -33,6 +33,13 @@ public interface MessagingService {
      * <p>
      * DeliveryMode is {@link MessageDeliveryMode#PERSISTENT}
      */
-    void send(@NotNull(message = "payload can't be null") Object payload, @NotEmpty(message = "exchange can't be empty") String exchange);
+    void send(@NotNull Object payload, @NotEmpty String exchange);
+
+    /**
+     * Send message to exchange
+     * <p>
+     * DeliveryMode is {@link MessageDeliveryMode#PERSISTENT}
+     */
+    void send(Object payload, @NotEmpty String exchange, @NotEmpty String routingKey);
 
 }

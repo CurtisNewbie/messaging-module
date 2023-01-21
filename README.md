@@ -1,4 +1,4 @@
-# messaging-module V2.0.7
+# messaging-module V2.0.8
 
 Module for async messaging using RabbitMQ, it provides convenient services and listener adapters for dispatching and consuming messages.
 

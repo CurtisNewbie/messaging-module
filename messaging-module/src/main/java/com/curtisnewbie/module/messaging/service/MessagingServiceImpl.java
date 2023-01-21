@@ -47,6 +47,16 @@ public class MessagingServiceImpl implements MessagingService {
                 .build());
     }
 
+    @Override
+    public void send(Object payload, String exchange, String routingKey) {
+        send(MessagingParam.builder()
+                .payload(payload)
+                .exchange(exchange)
+                .deliveryMode(MessageDeliveryMode.PERSISTENT)
+                .routingKey(routingKey)
+                .build());
+    }
+
     // ------------------------------------ private helper methods ------------------------------------
 
     private static class GeneralPropertiesMessagePostProcessor implements MessagePostProcessor {
