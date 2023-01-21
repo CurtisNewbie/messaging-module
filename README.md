@@ -10,13 +10,36 @@ A `RabbitTemplate` with default settings is populated if it's not found. However
 
 `MessageConverter` is automatically configured to use `Jackson2JsonMessageConverter` if no `MessageConverter` bean is found. If you prefer to use the default `SimpleMessageConverter` you will need to populate one by a `@Bean` annotated method.
 
-To send messages, simply inject and use `MessagingService`. Queues, Exchanges, and Listeners are created on your own, through any ways you like. However, there is a listener adapter `AbstractJsonDeserializedListenerAdapter` that conveniently converts json string to generic type.
+To send messages, simply inject and use `MessagingService` (or `MqHelper`, which is a static wrapper of `MessagingService`). Queues, Exchanges, and Listeners are created on your own, through any ways you like. 
+
+`@MsgListener` can be used to register listeners as follows.
+
+```java
+@EnableMsgListener
+@SpringBootApplication
+public class MyApp {
+
+}
+
+@Component
+public class MyListener {
+
+    @MsgListener(queue = "myqueue", exchange = "myexchange", routingKey = "#")
+    public void onMessage(MyMessage msg) {
+        // ...
+    }
+}
+```
 
 ## Configuration
 
 Data Type | Property Name | Description | Default Value
 ----------|---------------|-------------|---------------
-boolean | messaging-module.tracing.enabled | enable log tracing for messages, this is achieved by using message `headers`; traceId is put into message `headers` before dispatching, then the traceId is extracted by `AbstractTracingListener` and put into MDC. This may not work properly as expected, because the listener container use its own thread pool, without extra effort, MDC context is not copied to other thread and it's hard to clean it up properly. | false
+boolean | messaging.concurrent-declaration | Whether the declaration is concurrent (executed in CompletableFuture) | false
+int | messaging.listener.retry.max-attempt | Max attempt for `RetryTemplate` used by `@MsgListener` | 8
+int | messaging.listener.retry.backoff.initial-interval | Initial Interval for `ExponentialBackOffPolicy` used by `@MsgListener` | 500
+int | messaging.listener.retry.backoff.multiplier | Multiplier for `ExponentialBackOffPolicy` used by `@MsgListener` | 2
+int | messaging.listener.retry.backoff.max-interval | Max Interval for `ExponentialBackOffPolicy` used by `@MsgListener` | 3000
 
 ## Modules and Dependencies
 
