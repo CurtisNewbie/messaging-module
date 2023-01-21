@@ -42,4 +42,8 @@ public @interface MsgListener {
      */
     AcknowledgeMode ackMode() default AcknowledgeMode.AUTO;
 
+    /**
+     * Concurrency, by default it's not configured, and is up to the container configuration
+     */
+    int concurrency() default 0;
 }

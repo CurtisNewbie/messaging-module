@@ -76,6 +76,9 @@ public class MsgListenerRegistrar implements RabbitListenerConfigurer, Initializ
                 endpoint.setId(endpointId(queueName));
                 endpoint.setQueueNames(queueName);
                 endpoint.setAckMode(msgListener.ackMode());
+                if (msgListener.concurrency() > 0) {
+                    endpoint.setConcurrency("" + msgListener.concurrency());
+                }
                 endpoint.setMessageListener(new ReflectiveMessageListener(retryTemplate, m, messageConverter, bean));
                 registrar.registerEndpoint(endpoint, rabbitListenerContainerFactory);
             }
